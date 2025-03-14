@@ -1,7 +1,7 @@
 # Easy Payment
 
 [![Pub Version](https://img.shields.io/pub/v/easy_payment)](https://pub.dev/packages/easy_payment)
-[![Build Status](https://github.com/yourusername/easy_payment/workflows/CI/badge.svg)](https://github.com/yourusername/easy_payment/actions)
+[![Build Status](https://github.com/baoluchuling/easy_payment/workflows/CI/badge.svg)](https://github.com/baoluchuling/easy_payment/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 一个为 iOS 和 Android 平台提供简单灵活的应用内购买实现的 Flutter 插件。
