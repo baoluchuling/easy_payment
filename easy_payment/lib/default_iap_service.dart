@@ -2,106 +2,75 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'iap_service.dart';
+import 'iap_result.dart';
 
 /// 默认的IAP服务实现
+/// 
+/// 这是一个基础实现，用于测试或作为自定义实现的参考。
+/// 在实际项目中，你应该实现自己的 [IAPService]。
 class DefaultIAPService implements IAPService {
-  /// API基础URL
-  final String baseUrl;
-  
-  /// 超时时间
-  final Duration timeout;
-  
-  /// HTTP请求头
-  final Map<String, String> headers;
-
-  DefaultIAPService({
-    required this.baseUrl,
-    this.timeout = const Duration(seconds: 30),
-    Map<String, String>? headers,
-  }) : headers = {
-    'Content-Type': 'application/json',
-    ...?headers,
-  };
+  DefaultIAPService();
 
   @override
-  Future<IAPCreateOrderResult> createOrder({
+  Future<IAPResult> createOrder({
     required String productId,
     String? businessProductId,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/create_order'),
-        headers: headers,
-        body: json.encode({
-          'productId': productId,
-          'businessProductId': businessProductId,
-          'platform': defaultTargetPlatform.name,
-        }),
-      ).timeout(timeout);
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to create order: ${response.statusCode}');
-      }
-
-      final responseData = json.decode(response.body);
-      final orderId = responseData['orderId'] as String?;
-      if (orderId == null) {
-        throw Exception('Invalid response: missing orderId');
-      }
-
-      return IAPCreateOrderResult(
-        orderId: orderId,
-        extraData: responseData['extraData'] as Map<String, dynamic>?,
+      // 生成测试订单号
+      final orderId = '${DateTime.now().millisecondsSinceEpoch}_$productId';
+      
+      return IAPResult.success(
+        data: {'orderId': orderId},
       );
     } catch (e) {
-      throw Exception('Failed to create order: $e');
+      return IAPResult.failed(error: e.toString());
     }
   }
 
   @override
-  Future<IAPVerifyResult> verifyPurchase({
+  Future<IAPResult> verifyPurchase({
     required String productId,
-    required String? orderId,
-    required String? transactionId,
-    required String? originalTransactionId,
-    required String? receiptData,
+    String? orderId,
+    String? transactionId,
+    String? originalTransactionId,
+    String? receiptData,
     String? businessProductId,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/verify_purchase'),
-        headers: headers,
-        body: json.encode({
+      // 模拟验证逻辑
+      if (receiptData == null || receiptData.isEmpty) {
+        return IAPResult.failed(error: 'Receipt data is empty');
+      }
+
+      return IAPResult.success(
+        data: {
           'productId': productId,
           'orderId': orderId,
           'transactionId': transactionId,
-          'originalTransactionId': originalTransactionId,
-          'receiptData': receiptData,
-          'businessProductId': businessProductId,
-          'platform': defaultTargetPlatform.name,
-        }),
-      ).timeout(timeout);
-
-      if (response.statusCode != 200) {
-        return IAPVerifyResult.failure(
-          'Server verification failed: ${response.statusCode}',
-        );
-      }
-
-      final responseData = json.decode(response.body);
-      final success = responseData['success'] as bool? ?? false;
-      
-      if (!success) {
-        return IAPVerifyResult.failure(
-          responseData['error'] as String? ?? 'Unknown error',
-        );
-      }
-
-      return IAPVerifyResult.success(
-        responseData['data'] as Map<String, dynamic>?,
+          'verificationTime': DateTime.now().toIso8601String(),
+        },
       );
     } catch (e) {
-      return IAPVerifyResult.failure('Server verification failed: $e');
+      return IAPResult.failed(error: e.toString());
     }
   }
-} 
+
+  @override
+  Future<IAPResult> getProducts() async {
+    try {
+      // 返回测试商品列表
+      return IAPResult.success(
+        data: {
+          'productIds': [
+            'test_consumable_001',
+            'test_non_consumable_001',
+            'test_subscription_001',
+          ],
+        },
+      );
+    } catch (e) {
+      return IAPResult.failed(error: e.toString());
+    }
+  }
+}

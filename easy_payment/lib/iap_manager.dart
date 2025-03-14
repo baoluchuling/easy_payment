@@ -15,6 +15,35 @@ import 'iap_logger_listener.dart';
 import 'iap_config.dart';
 
 /// IAP支付管理器
+/// 
+/// 用于管理应用内购买流程，包括：
+/// * 初始化支付环境
+/// * 查询商品信息
+/// * 发起购买请求
+/// * 验证购买结果
+/// * 管理购买状态
+/// * 处理未完成的购买
+/// 
+/// 基本使用示例:
+/// ```dart
+/// final manager = IAPManager.instance;
+/// await manager.initialize(
+///   service: YourIAPService(),
+///   config: IAPConfig(
+///     maxRetries: 3,
+///     retryInterval: Duration(seconds: 2),
+///   ),
+/// );
+/// 
+/// try {
+///   final result = await manager.purchase('product_id');
+///   if (result.success) {
+///     print('Purchase successful: ${result.orderId}');
+///   }
+/// } catch (e) {
+///   print('Purchase failed: $e');
+/// }
+/// ```
 class IAPManager {
   /// 单例实例
   static IAPManager? _instance;
@@ -55,6 +84,25 @@ class IAPManager {
   IAPManager._() : _config = IAPConfig.defaultConfig;
 
   /// 初始化支付管理器
+  /// 
+  /// 必须在使用其他功能前调用此方法完成初始化。
+  /// 
+  /// 参数:
+  /// * [service] - 实现了 [IAPService] 接口的支付服务实例，用于处理服务端逻辑
+  /// * [loggerListener] - 可选的日志监听器，用于接收支付过程中的日志
+  /// * [config] - 可选的配置项，如果不提供则使用默认配置
+  /// 
+  /// 异常:
+  /// * [IAPError] - 当初始化失败时抛出，错误类型为 [IAPErrorType.notInitialized]
+  /// 
+  /// 示例:
+  /// ```dart
+  /// await manager.initialize(
+  ///   service: MyIAPService(),
+  ///   loggerListener: MyLoggerListener(),
+  ///   config: IAPConfig(maxRetries: 3),
+  /// );
+  /// ```
   Future<void> initialize({
     required IAPService service,
     IAPLoggerListener? loggerListener,
@@ -63,8 +111,12 @@ class IAPManager {
     if (_isInitialized) return;
 
     _service = service;
+    
     if (config != null) {
       _config = config;
+      // 更新其他组件的配置
+      IAPError.setConfig(config);
+      IAPLogger.instance.setConfig(config);
     }
     
     // 检查是否可用
@@ -453,6 +505,48 @@ class IAPManager {
   }
 
   /// 购买商品
+  /// 
+  /// 发起一个新的购买请求。这个方法会：
+  /// 1. 检查是否存在未完成的购买
+  /// 2. 创建服务端订单
+  /// 3. 调用平台支付接口
+  /// 4. 验证购买结果
+  /// 
+  /// 参数:
+  /// * [productId] - 要购买的商品 ID
+  /// * [businessProductId] - 可选的业务商品 ID，用于和后端系统对接
+  /// * [type] - 商品类型，默认为一次性消耗品
+  /// 
+  /// 返回:
+  /// * [IAPResult] - 购买结果，包含订单ID和验证结果
+  /// 
+  /// 异常:
+  /// * [IAPError] - 当购买过程中出现错误时抛出，可能的错误类型包括：
+  ///   - [IAPErrorType.notInitialized] - 管理器未初始化
+  ///   - [IAPErrorType.productNotFound] - 商品不存在
+  ///   - [IAPErrorType.duplicatePurchase] - 存在重复购买
+  ///   - [IAPErrorType.network] - 网络错误
+  ///   - [IAPErrorType.paymentInvalid] - 支付无效
+  ///   - [IAPErrorType.serverVerifyFailed] - 服务端验证失败
+  /// 
+  /// 示例:
+  /// ```dart
+  /// try {
+  ///   final result = await manager.purchase(
+  ///     'premium_feature',
+  ///     businessProductId: 'business_123',
+  ///     type: IAPProductType.nonConsumable,
+  ///   );
+  ///   
+  ///   if (result.success) {
+  ///     print('Purchase successful: ${result.orderId}');
+  ///     // 处理购买成功逻辑
+  ///   }
+  /// } on IAPError catch (e) {
+  ///   print('Purchase failed: ${e.message}');
+  ///   // 处理特定错误
+  /// }
+  /// ```
   Future<IAPResult> purchase(
     String productId, {
     String? businessProductId,
@@ -579,6 +673,22 @@ class IAPManager {
   }
 
   /// 获取商品详情
+  /// 
+  /// 查询指定商品的详细信息，包括价格、描述等。
+  /// 
+  /// 参数:
+  /// * [productId] - 要查询的商品 ID
+  /// 
+  /// 返回:
+  /// * [ProductDetails]? - 商品详情，如果商品不存在则返回 null
+  /// 
+  /// 示例:
+  /// ```dart
+  /// final details = await manager.getProductDetails('premium_feature');
+  /// if (details != null) {
+  ///   print('Price: ${details.price}');
+  /// }
+  /// ```
   Future<ProductDetails?> getProductDetails(String productId) async {
     try {
       return await _getProductDetails(productId);
@@ -607,6 +717,22 @@ class IAPManager {
   }
 
   /// 获取购买状态
+  /// 
+  /// 查询指定商品的最新购买状态。
+  /// 
+  /// 参数:
+  /// * [productId] - 要查询的商品 ID
+  /// 
+  /// 返回:
+  /// * [IAPPurchaseInfo]? - 购买状态信息，如果没有购买记录则返回 null
+  /// 
+  /// 示例:
+  /// ```dart
+  /// final state = await manager.getPurchaseState('premium_feature');
+  /// if (state?.status == IAPPurchaseStatus.completed) {
+  ///   // 处理已完成的购买
+  /// }
+  /// ```
   Future<IAPPurchaseInfo?> getPurchaseState(String productId) async {
     return _stateStorage.getState(productId);
   }
@@ -648,4 +774,4 @@ class IAPManager {
     _instance = null;
     _isInitialized = false;
   }
-} 
+}

@@ -1,16 +1,35 @@
-# easy_payment_example
+# Easy Payment Example
 
-Demonstrates how to use the easy_payment plugin.
+This example demonstrates how to integrate and use the Easy Payment plugin in a Flutter application.
 
-## Getting Started
+## Features Demonstrated
 
-This project is a starting point for a Flutter application.
+- Basic payment flow implementation
+- Error handling and status display
+- Payment logging integration
+- UI feedback during payment processing
 
-A few resources to get you started if this is your first Flutter project:
+## Running the Example
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+1. Clone the repository
+2. Navigate to the example directory
+3. Run `flutter pub get` to install dependencies
+4. Run `flutter run` to start the app
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Code Structure
+
+The example demonstrates:
+- Setting up the IAPManager with DefaultIAPService
+- Implementing a purchase flow with loading states
+- Handling various payment outcomes and errors
+- Integration with the logging system
+
+## Testing
+
+For testing purposes, the example uses a test product ID ('test_product_1'). In a real application, you would replace this with your actual product IDs from the App Store or Google Play Store.
+
+## Notes
+
+- The DefaultIAPService in this example is a mock implementation for demonstration purposes
+- In a production environment, you should implement proper verification and error handling
+- Make sure to properly configure your app in the respective app stores before testing real purchases
