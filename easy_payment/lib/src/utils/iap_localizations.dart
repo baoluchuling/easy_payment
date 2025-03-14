@@ -1,33 +1,25 @@
-import 'iap_error.dart';
-import 'iap_purchase_info.dart';
+import '../core/iap_error.dart';
+import '../models/iap_purchase_info.dart';
 
-/// 错误消息国际化接口 / Error message internationalization interface
+/// 错误消息国际化接口
 abstract class IAPErrorLocalizations {
-  /// 获取错误消息 / Get error message
-  /// 
-  /// [type] 错误类型 / Error type
-  /// [details] 错误详情（可选）/ Error details (optional)
+  /// 获取错误消息
   String getErrorMessage(IAPErrorType type, [String? details]);
 }
 
-/// 状态文本国际化接口 / Status text internationalization interface
+/// 状态文本国际化接口
 abstract class IAPStatusLocalizations {
-  /// 获取状态文本 / Get status text
-  /// 
-  /// [status] 购买状态 / Purchase status
+  /// 获取状态文本
   String getStatusText(IAPPurchaseStatus status);
 }
 
-/// 日志信息国际化接口 / Log message internationalization interface
+/// 日志信息国际化接口
 abstract class IAPLogLocalizations {
-  /// 获取日志消息 / Get log message
-  /// 
-  /// [type] 日志类型 / Log type
-  /// [data] 日志数据 / Log data
+  /// 获取日志消息
   String getLogMessage(String type, Map<String, dynamic> data);
 }
 
-/// 默认的错误消息国际化实现 / Default error message internationalization implementation
+/// 默认的错误消息国际化实现
 class DefaultIAPErrorLocalizations implements IAPErrorLocalizations {
   final String locale;
   
@@ -74,7 +66,7 @@ class DefaultIAPErrorLocalizations implements IAPErrorLocalizations {
   }
 }
 
-/// 默认的状态文本国际化实现 / Default status text internationalization implementation
+/// 默认的状态文本国际化实现
 class DefaultIAPStatusLocalizations implements IAPStatusLocalizations {
   final String locale;
   
@@ -113,7 +105,7 @@ class DefaultIAPStatusLocalizations implements IAPStatusLocalizations {
   }
 }
 
-/// 默认的日志信息国际化实现 / Default log message internationalization implementation
+/// 默认的日志信息国际化实现
 class DefaultIAPLogLocalizations implements IAPLogLocalizations {
   final String locale;
   

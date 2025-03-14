@@ -129,4 +129,4 @@ class IAPPurchaseInfo {
   bool get isTerminalState => status == IAPPurchaseStatus.completed ||
       status == IAPPurchaseStatus.failed ||
       status == IAPPurchaseStatus.cancelled;
-} 
+}

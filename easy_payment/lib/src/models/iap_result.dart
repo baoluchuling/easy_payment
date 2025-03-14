@@ -103,4 +103,4 @@ class IAPResult {
       purchaseDetails: purchaseDetails,
     );
   }
-} 
+}

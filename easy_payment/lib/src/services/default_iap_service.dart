@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'iap_service.dart';
-import 'iap_result.dart';
+import '../core/iap_service.dart';
+import '../models/iap_result.dart';
 
 /// 默认的IAP服务实现
 /// 
@@ -12,7 +12,7 @@ class DefaultIAPService implements IAPService {
   DefaultIAPService();
 
   @override
-  Future<IAPResult> createOrder({
+  Future<IAPCreateOrderResult> createOrder({
     required String productId,
     String? businessProductId,
   }) async {
@@ -20,16 +20,16 @@ class DefaultIAPService implements IAPService {
       // 生成测试订单号
       final orderId = '${DateTime.now().millisecondsSinceEpoch}_$productId';
       
-      return IAPResult.success(
-        data: {'orderId': orderId},
+      return IAPCreateOrderResult(
+        orderId: orderId,
       );
     } catch (e) {
-      return IAPResult.failed(error: e.toString());
+      throw e.toString();
     }
   }
 
   @override
-  Future<IAPResult> verifyPurchase({
+  Future<IAPVerifyResult> verifyPurchase({
     required String productId,
     String? orderId,
     String? transactionId,
@@ -40,37 +40,38 @@ class DefaultIAPService implements IAPService {
     try {
       // 模拟验证逻辑
       if (receiptData == null || receiptData.isEmpty) {
-        return IAPResult.failed(error: 'Receipt data is empty');
+        return IAPVerifyResult.failure('Receipt data is empty');
       }
 
-      return IAPResult.success(
-        data: {
-          'productId': productId,
-          'orderId': orderId,
-          'transactionId': transactionId,
-          'verificationTime': DateTime.now().toIso8601String(),
-        },
-      );
+      return IAPVerifyResult.success({
+        'productId': productId,
+        'orderId': orderId,
+        'transactionId': transactionId,
+        'verificationTime': DateTime.now().toIso8601String(),
+      });
     } catch (e) {
-      return IAPResult.failed(error: e.toString());
+      return IAPVerifyResult.failure(e.toString());
     }
   }
 
   @override
-  Future<IAPResult> getProducts() async {
+  Future<IAPProductListResult> getProducts() async {
     try {
       // 返回测试商品列表
-      return IAPResult.success(
-        data: {
-          'productIds': [
-            'test_consumable_001',
-            'test_non_consumable_001',
-            'test_subscription_001',
-          ],
-        },
+      return IAPProductListResult(
+        success: true,
+        productIds: [
+          'test_consumable_001',
+          'test_non_consumable_001',
+          'test_subscription_001',
+        ],
       );
     } catch (e) {
-      return IAPResult.failed(error: e.toString());
+      return IAPProductListResult(
+        success: false,
+        productIds: [],
+        error: e.toString(),
+      );
     }
   }
 }

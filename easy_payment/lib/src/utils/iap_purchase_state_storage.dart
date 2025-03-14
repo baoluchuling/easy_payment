@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences.dart';
-import 'iap_purchase_info.dart';
+import '../models/iap_purchase_info.dart';
 
 /// IAP购买状态存储管理器
 class IAPPurchaseStateStorage {
@@ -109,4 +109,4 @@ class IAPPurchaseStateStorage {
     _stateController.close();
     _stateCache.clear();
   }
-} 
+}
