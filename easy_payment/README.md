@@ -4,7 +4,7 @@
 [![Build Status](https://github.com/baoluchuling/easy_payment/workflows/CI/badge.svg)](https://github.com/baoluchuling/easy_payment/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Select Language / 选择语言: **[English](README.md)** | **[简体中文](README.zh-CN.md)** | **[繁體中文](README.zh-TW.md)**
+Select Language / 选择语言: **[English](README.md)** | **[简体中文](README.zh-CN.md)**
 
 A Flutter plugin that provides a simple and flexible in-app purchase implementation for both iOS and Android platforms.
 
