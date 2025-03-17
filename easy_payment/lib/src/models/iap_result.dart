@@ -1,35 +1,38 @@
 import 'package:in_app_purchase/in_app_purchase.dart';
 
-/// 支付结果状态
+/// Payment result status
 enum IAPStatus {
-  /// 支付成功
+  /// Payment successful
   success,
-  /// 支付失败
+
+  /// Payment failed
   failed,
-  /// 支付取消
+
+  /// Payment cancelled
   cancelled,
-  /// 支付处理中
+
+  /// Payment pending
   pending,
 }
 
-/// 支付结果模型
+/// Payment result model
 class IAPResult {
-  /// 支付状态
+  /// Payment status
   final IAPStatus status;
-  
-  /// 错误信息
+
+  /// Error message
   final String? error;
-  
-  /// 商品ID
+
+  /// Product ID
   final String productId;
-  
-  /// 订单ID
+
+  /// Order ID
   final String? orderId;
-  
-  /// 原始购买详情
+
+  /// Original purchase details
   final PurchaseDetails? purchaseDetails;
-  
-  /// 服务端验证结果
+
+  /// Server verification result
   final Map<String, dynamic>? serverVerifyResult;
 
   const IAPResult({
@@ -41,10 +44,10 @@ class IAPResult {
     this.serverVerifyResult,
   });
 
-  /// 判断是否支付成功
+  /// Check if payment was successful
   bool get isSuccess => status == IAPStatus.success;
 
-  /// 创建成功结果
+  /// Create a successful result
   factory IAPResult.success({
     required String productId,
     required String orderId,
@@ -60,7 +63,7 @@ class IAPResult {
     );
   }
 
-  /// 创建失败结果
+  /// Create a failed result
   factory IAPResult.failed({
     required String productId,
     required String error,
@@ -76,7 +79,7 @@ class IAPResult {
     );
   }
 
-  /// 创建取消结果
+  /// Create a cancelled result
   factory IAPResult.cancelled({
     required String productId,
     String? orderId,
@@ -90,7 +93,7 @@ class IAPResult {
     );
   }
 
-  /// 创建处理中结果
+  /// Create a pending result
   factory IAPResult.pending({
     required String productId,
     required String orderId,

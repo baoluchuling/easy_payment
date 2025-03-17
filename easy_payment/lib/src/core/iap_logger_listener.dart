@@ -1,5 +1,5 @@
 /// 日志级别
-enum LogLevel {
+enum EasyPaymentLogLevel {
   /// 详细信息
   verbose,
   /// 调试信息
@@ -13,7 +13,7 @@ enum LogLevel {
 }
 
 /// 日志监听器接口
-abstract class IAPLoggerListener {
+abstract class EasyPaymentLoggerListener {
   /// 日志回调
   /// [event] 事件名称
   /// [data] 日志数据

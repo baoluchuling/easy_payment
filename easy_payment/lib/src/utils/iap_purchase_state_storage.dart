@@ -1,33 +1,33 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/iap_purchase_info.dart';
 
-/// IAP购买状态存储管理器
+/// IAP purchase state storage manager
 class IAPPurchaseStateStorage {
-  /// SharedPreferences 实例
+  /// SharedPreferences instance
   late final SharedPreferences _prefs;
 
-  /// 持久化存储键
+  /// Persistent storage key
   static const String _stateKey = 'iap_purchase_states';
-  
-  /// 购买状态缓存
+
+  /// Purchase state cache
   final Map<String, IAPPurchaseInfo> _stateCache = {};
 
-  /// 状态变更控制器
+  /// State change controller
   final _stateController = StreamController<IAPPurchaseInfo>.broadcast();
 
-  /// 获取状态变更流
+  /// Get state change stream
   Stream<IAPPurchaseInfo> get stateStream => _stateController.stream;
 
-  /// 初始化存储
+  /// Initialize storage
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
     await _restoreStates();
   }
 
-  /// 恢复购买状态
+  /// Restore purchase states
   Future<void> _restoreStates() async {
     try {
       final String? savedStates = _prefs.getString(_stateKey);
@@ -43,7 +43,7 @@ class IAPPurchaseStateStorage {
     }
   }
 
-  /// 保存购买状态
+  /// Save purchase states
   Future<void> _saveStates() async {
     try {
       final List<Map<String, dynamic>> states = _stateCache.values
@@ -55,56 +55,56 @@ class IAPPurchaseStateStorage {
     }
   }
 
-  /// 更新购买状态
+  /// Update purchase state
   Future<void> updateState(IAPPurchaseInfo info) async {
     _stateCache[info.productId] = info;
     await _saveStates();
     _stateController.add(info);
   }
 
-  /// 移除购买状态
+  /// Remove purchase state
   Future<void> removeState(String productId) async {
     _stateCache.remove(productId);
     await _saveStates();
   }
 
-  /// 获取购买状态
+  /// Get purchase state
   IAPPurchaseInfo? getState(String productId) {
     return _stateCache[productId];
   }
 
-  /// 获取所有购买状态
+  /// Get all purchase states
   List<IAPPurchaseInfo> getAllStates() {
     return _stateCache.values.toList();
   }
 
-  /// 获取未完成的购买
+  /// Get pending purchases
   List<IAPPurchaseInfo> getPendingStates() {
     return _stateCache.values
         .where((info) => !info.isTerminalState)
         .toList();
   }
 
-  /// 获取已完成的购买
+  /// Get completed purchases
   List<IAPPurchaseInfo> getCompletedStates() {
     return _stateCache.values
         .where((info) => info.status == IAPPurchaseStatus.completed)
         .toList();
   }
 
-  /// 清理已完成的购买记录
+  /// Cleanup completed purchases
   Future<void> cleanupCompletedStates() async {
     _stateCache.removeWhere((_, info) => info.isTerminalState);
     await _saveStates();
   }
 
-  /// 清理所有购买记录
+  /// Clear all purchase records
   Future<void> clearAllStates() async {
     _stateCache.clear();
     await _saveStates();
   }
 
-  /// 销毁存储
+  /// Dispose storage
   void dispose() {
     _stateController.close();
     _stateCache.clear();

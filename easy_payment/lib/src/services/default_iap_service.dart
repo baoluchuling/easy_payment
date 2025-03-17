@@ -4,11 +4,11 @@ import 'package:http/http.dart' as http;
 import '../core/iap_service.dart';
 import '../models/iap_result.dart';
 
-/// 默认的IAP服务实现
+/// Default IAP service implementation
 /// 
-/// 这是一个基础实现，用于测试或作为自定义实现的参考。
-/// 在实际项目中，你应该实现自己的 [IAPService]。
-class DefaultIAPService implements IAPService {
+/// This is a basic implementation for testing or as a reference for custom implementations.
+/// In a real project, you should implement your own [EasyPaymentService].
+class DefaultIAPService implements EasyPaymentService {
   DefaultIAPService();
 
   @override
@@ -17,7 +17,7 @@ class DefaultIAPService implements IAPService {
     String? businessProductId,
   }) async {
     try {
-      // 生成测试订单号
+      // Generate test order ID
       final orderId = '${DateTime.now().millisecondsSinceEpoch}_$productId';
       
       return IAPCreateOrderResult(
@@ -38,11 +38,10 @@ class DefaultIAPService implements IAPService {
     String? businessProductId,
   }) async {
     try {
-      // 模拟验证逻辑
+      // Simulate verification logic
       if (receiptData == null || receiptData.isEmpty) {
         return IAPVerifyResult.failure('Receipt data is empty');
       }
-
       return IAPVerifyResult.success({
         'productId': productId,
         'orderId': orderId,
@@ -57,7 +56,7 @@ class DefaultIAPService implements IAPService {
   @override
   Future<IAPProductListResult> getProducts() async {
     try {
-      // 返回测试商品列表
+      // Return test product list
       return IAPProductListResult(
         success: true,
         productIds: [
