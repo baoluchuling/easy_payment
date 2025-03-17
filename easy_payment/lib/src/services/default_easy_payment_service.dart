@@ -1,18 +1,18 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import '../core/iap_service.dart';
-import '../models/iap_result.dart';
+import '../core/easy_payment_service.dart';
+import '../models/easy_payment_result.dart';
 
-/// Default IAP service implementation
+/// Default EasyPaymentService implementation
 /// 
 /// This is a basic implementation for testing or as a reference for custom implementations.
 /// In a real project, you should implement your own [EasyPaymentService].
-class DefaultIAPService implements EasyPaymentService {
-  DefaultIAPService();
+class DefaultEasyPaymentService implements EasyPaymentService {
+  DefaultEasyPaymentService();
 
   @override
-  Future<IAPCreateOrderResult> createOrder({
+  Future<EasyPaymentCreateOrderResult> createOrder({
     required String productId,
     String? businessProductId,
   }) async {
@@ -20,7 +20,7 @@ class DefaultIAPService implements EasyPaymentService {
       // Generate test order ID
       final orderId = '${DateTime.now().millisecondsSinceEpoch}_$productId';
       
-      return IAPCreateOrderResult(
+      return EasyPaymentCreateOrderResult(
         orderId: orderId,
       );
     } catch (e) {
@@ -29,7 +29,7 @@ class DefaultIAPService implements EasyPaymentService {
   }
 
   @override
-  Future<IAPVerifyResult> verifyPurchase({
+  Future<EasyPaymentVerifyResult> verifyPurchase({
     required String productId,
     String? orderId,
     String? transactionId,
@@ -40,24 +40,24 @@ class DefaultIAPService implements EasyPaymentService {
     try {
       // Simulate verification logic
       if (receiptData == null || receiptData.isEmpty) {
-        return IAPVerifyResult.failure('Receipt data is empty');
+        return EasyPaymentVerifyResult.failure('Receipt data is empty');
       }
-      return IAPVerifyResult.success({
+      return EasyPaymentVerifyResult.success({
         'productId': productId,
         'orderId': orderId,
         'transactionId': transactionId,
         'verificationTime': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      return IAPVerifyResult.failure(e.toString());
+      return EasyPaymentVerifyResult.failure(e.toString());
     }
   }
 
   @override
-  Future<IAPProductListResult> getProducts() async {
+  Future<EasyPaymentProductListResult> getProducts() async {
     try {
       // Return test product list
-      return IAPProductListResult(
+      return EasyPaymentProductListResult(
         success: true,
         productIds: [
           'test_consumable_001',
@@ -66,7 +66,7 @@ class DefaultIAPService implements EasyPaymentService {
         ],
       );
     } catch (e) {
-      return IAPProductListResult(
+      return EasyPaymentProductListResult(
         success: false,
         productIds: [],
         error: e.toString(),

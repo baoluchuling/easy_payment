@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
-import 'iap_logger_listener.dart';
-import 'iap_purchase_info.dart';
-import 'iap_config.dart';
+import 'easy_payment_logger_listener.dart';
+import 'easy_payment_purchase_info.dart';
+import 'easy_payment_config.dart';
 
 /// IAP日志监听器接口
-abstract class IAPLoggerListener {
+abstract class EasyPaymentLoggerListener {
   /// 日志回调
   /// [event] 事件名称
   /// [data] 日志数据
@@ -23,25 +23,25 @@ class EasyPaymentLogger {
   }
 
   /// 日志监听器集合
-  final Set<IAPLoggerListener> _listeners = {};
+  final Set<EasyPaymentLoggerListener> _listeners = {};
 
   /// 配置
-  IAPConfig _config = IAPConfig.defaultConfig;
+  EasyPaymentConfig _config = EasyPaymentConfig.defaultConfig;
 
   EasyPaymentLogger._();
 
   /// 设置配置
-  void setConfig(IAPConfig config) {
+  void setConfig(EasyPaymentConfig config) {
     _config = config;
   }
 
   /// 添加日志监听器
-  void addListener(IAPLoggerListener listener) {
+  void addListener(EasyPaymentLoggerListener listener) {
     _listeners.add(listener);
   }
 
   /// 移除日志监听器
-  void removeListener(IAPLoggerListener listener) {
+  void removeListener(EasyPaymentLoggerListener listener) {
     _listeners.remove(listener);
   }
 
@@ -76,7 +76,7 @@ class EasyPaymentLogger {
   }
 
   /// 记录状态更新
-  void logStateUpdate(IAPPurchaseInfo info) {
+  void logStateUpdate(EasyPaymentPurchaseInfo info) {
     final data = {
       'product_id': info.productId,
       'status': info.status.toString(),

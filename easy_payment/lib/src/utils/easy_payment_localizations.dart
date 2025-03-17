@@ -1,115 +1,115 @@
-import '../core/iap_error.dart';
-import '../models/iap_purchase_info.dart';
+import '../core/easy_payment_error.dart';
+import '../models/easy_payment_purchase_info.dart';
 
 /// 错误消息国际化接口
-abstract class IAPErrorLocalizations {
+abstract class EasyPaymentErrorLocalizations {
   /// 获取错误消息
-  String getErrorMessage(IAPErrorType type, [String? details]);
+  String getErrorMessage(EasyPaymentErrorType type, [String? details]);
 }
 
 /// 状态文本国际化接口
-abstract class IAPStatusLocalizations {
+abstract class EasyPaymentStatusLocalizations {
   /// 获取状态文本
-  String getStatusText(IAPPurchaseStatus status);
+  String getStatusText(EasyPaymentPurchaseStatus status);
 }
 
 /// 日志信息国际化接口
-abstract class IAPLogLocalizations {
+abstract class EasyPaymentLogLocalizations {
   /// 获取日志消息
   String getLogMessage(String type, Map<String, dynamic> data);
 }
 
 /// 默认的错误消息国际化实现
-class DefaultIAPErrorLocalizations implements IAPErrorLocalizations {
+class DefaultEasyPaymentErrorLocalizations implements EasyPaymentErrorLocalizations {
   final String locale;
   
-  const DefaultIAPErrorLocalizations([this.locale = 'en']);
+  const DefaultEasyPaymentErrorLocalizations([this.locale = 'en']);
 
   @override
-  String getErrorMessage(IAPErrorType type, [String? details]) {
+  String getErrorMessage(EasyPaymentErrorType type, [String? details]) {
     if (locale == 'zh') {
       switch (type) {
-        case IAPErrorType.notInitialized:
+        case EasyPaymentErrorType.notInitialized:
           return '支付系统未初始化';
-        case IAPErrorType.productNotFound:
+        case EasyPaymentErrorType.productNotFound:
           return '未找到商品';
-        case IAPErrorType.duplicatePurchase:
+        case EasyPaymentErrorType.duplicatePurchase:
           return '已有一个购买进程在进行中';
-        case IAPErrorType.paymentInvalid:
+        case EasyPaymentErrorType.paymentInvalid:
           return '无效的支付';
-        case IAPErrorType.serverVerifyFailed:
+        case EasyPaymentErrorType.serverVerifyFailed:
           return '服务器验证失败${details != null ? ': $details' : ''}';
-        case IAPErrorType.network:
+        case EasyPaymentErrorType.network:
           return '网络错误${details != null ? ': $details' : ''}';
-        case IAPErrorType.unknown:
+        case EasyPaymentErrorType.unknown:
           return '未知错误${details != null ? ': $details' : ''}';
       }
     }
 
     // English (default)
     switch (type) {
-      case IAPErrorType.notInitialized:
+      case EasyPaymentErrorType.notInitialized:
         return 'Payment system is not initialized';
-      case IAPErrorType.productNotFound:
+      case EasyPaymentErrorType.productNotFound:
         return 'Product not found';
-      case IAPErrorType.duplicatePurchase:
+      case EasyPaymentErrorType.duplicatePurchase:
         return 'A purchase is already in progress';
-      case IAPErrorType.paymentInvalid:
+      case EasyPaymentErrorType.paymentInvalid:
         return 'Invalid payment';
-      case IAPErrorType.serverVerifyFailed:
+      case EasyPaymentErrorType.serverVerifyFailed:
         return 'Server verification failed${details != null ? ': $details' : ''}';
-      case IAPErrorType.network:
+      case EasyPaymentErrorType.network:
         return 'Network error${details != null ? ': $details' : ''}';
-      case IAPErrorType.unknown:
+      case EasyPaymentErrorType.unknown:
         return 'Unknown error${details != null ? ': $details' : ''}';
     }
   }
 }
 
 /// 默认的状态文本国际化实现
-class DefaultIAPStatusLocalizations implements IAPStatusLocalizations {
+class DefaultEasyPaymentStatusLocalizations implements EasyPaymentStatusLocalizations {
   final String locale;
   
-  const DefaultIAPStatusLocalizations([this.locale = 'en']);
+  const DefaultEasyPaymentStatusLocalizations([this.locale = 'en']);
 
   @override
-  String getStatusText(IAPPurchaseStatus status) {
+  String getStatusText(EasyPaymentPurchaseStatus status) {
     if (locale == 'zh') {
       switch (status) {
-        case IAPPurchaseStatus.pending:
+        case EasyPaymentPurchaseStatus.pending:
           return '等待中';
-        case IAPPurchaseStatus.processing:
+        case EasyPaymentPurchaseStatus.processing:
           return '处理中';
-        case IAPPurchaseStatus.completed:
+        case EasyPaymentPurchaseStatus.completed:
           return '已完成';
-        case IAPPurchaseStatus.failed:
+        case EasyPaymentPurchaseStatus.failed:
           return '失败';
-        case IAPPurchaseStatus.cancelled:
+        case EasyPaymentPurchaseStatus.cancelled:
           return '已取消';
       }
     }
 
     // English (default)
     switch (status) {
-      case IAPPurchaseStatus.pending:
+      case EasyPaymentPurchaseStatus.pending:
         return 'Pending';
-      case IAPPurchaseStatus.processing:
+      case EasyPaymentPurchaseStatus.processing:
         return 'Processing';
-      case IAPPurchaseStatus.completed:
+      case EasyPaymentPurchaseStatus.completed:
         return 'Completed';
-      case IAPPurchaseStatus.failed:
+      case EasyPaymentPurchaseStatus.failed:
         return 'Failed';
-      case IAPPurchaseStatus.cancelled:
+      case EasyPaymentPurchaseStatus.cancelled:
         return 'Cancelled';
     }
   }
 }
 
 /// 默认的日志信息国际化实现
-class DefaultIAPLogLocalizations implements IAPLogLocalizations {
+class DefaultEasyPaymentLogLocalizations implements EasyPaymentLogLocalizations {
   final String locale;
   
-  const DefaultIAPLogLocalizations([this.locale = 'en']);
+  const DefaultEasyPaymentLogLocalizations([this.locale = 'en']);
 
   @override
   String getLogMessage(String type, Map<String, dynamic> data) {

@@ -1,6 +1,6 @@
 import 'package:retry/retry.dart';
-import '../utils/iap_localizations.dart';
-import 'iap_logger_listener.dart';
+import '../utils/easy_payment_localizations.dart';
+import 'easy_payment_logger_listener.dart';
 
 /// EasyPayment配置
 class EasyPaymentConfig {

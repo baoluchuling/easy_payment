@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/iap_purchase_info.dart';
 
 /// IAP purchase state storage manager
-class IAPPurchaseStateStorage {
+class EasyPaymentPurchaseStateStorage {
   /// SharedPreferences instance
   late final SharedPreferences _prefs;
 

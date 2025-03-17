@@ -21,7 +21,7 @@ enum IAPProductType {
 }
 
 /// 持久化的购买信息模型
-class IAPPurchaseInfo {
+class EasyPaymentPurchaseInfo {
   /// 商品ID
   final String productId;
   
@@ -52,7 +52,7 @@ class IAPPurchaseInfo {
   /// 验证结果
   final Map<String, dynamic>? verifyResult;
 
-  const IAPPurchaseInfo({
+  const EasyPaymentPurchaseInfo({
     required this.productId,
     this.transactionId,
     this.originalTransactionId,
@@ -66,8 +66,8 @@ class IAPPurchaseInfo {
   }) : createTime = createTime ?? DateTime.now().millisecondsSinceEpoch;
 
   /// 从JSON创建实例
-  factory IAPPurchaseInfo.fromJson(Map<String, dynamic> json) {
-    return IAPPurchaseInfo(
+  factory EasyPaymentPurchaseInfo.fromJson(Map<String, dynamic> json) {
+    return EasyPaymentPurchaseInfo(
       productId: json['productId'] as String,
       transactionId: json['transactionId'] as String?,
       originalTransactionId: json['originalTransactionId'] as String?,
@@ -101,7 +101,7 @@ class IAPPurchaseInfo {
   }
 
   /// 创建更新后的实例
-  IAPPurchaseInfo copyWith({
+  EasyPaymentPurchaseInfo copyWith({
     String? transactionId,
     String? originalTransactionId,
     String? receiptData,
@@ -111,7 +111,7 @@ class IAPPurchaseInfo {
     String? error,
     Map<String, dynamic>? verifyResult,
   }) {
-    return IAPPurchaseInfo(
+    return EasyPaymentPurchaseInfo(
       productId: productId,
       transactionId: transactionId ?? this.transactionId,
       originalTransactionId: originalTransactionId ?? this.originalTransactionId,

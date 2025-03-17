@@ -1,4 +1,3 @@
-@ -0,0 +1,777 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -6,14 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:retry/retry.dart';
 import 'package:shared_preferences.dart';
-import 'iap_error.dart';
-import 'iap_result.dart';
-import 'iap_purchase_info.dart';
-import 'iap_service.dart';
-import 'iap_purchase_state_storage.dart';
-import 'iap_logger.dart';
-import 'iap_logger_listener.dart';
-import 'iap_config.dart';
+import 'easy_payment_error.dart';
+import 'easy_payment_result.dart';
+import 'easy_payment_purchase_info.dart';
+import 'easy_payment_service.dart';
+import 'easy_payment_purchase_state_storage.dart';
+import 'easy_payment_logger.dart';
+import 'easy_payment_logger_listener.dart';
+import 'easy_payment_config.dart';
 
 /// IAP支付管理器
 /// 
@@ -45,13 +44,13 @@ import 'iap_config.dart';
 ///   print('Purchase failed: $e');
 /// }
 /// ```
-class IAPManager {
+class EasyPaymentManager {
   /// 单例实例
-  static IAPManager? _instance;
+  static EasyPaymentManager? _instance;
   
   /// 获取单例实例
-  static IAPManager get instance {
-    _instance ??= IAPManager._();
+  static EasyPaymentManager get instance {
+    _instance ??= EasyPaymentManager._();
     return _instance!;
   }
 
@@ -59,13 +58,13 @@ class IAPManager {
   final InAppPurchase _iap = InAppPurchase.instance;
   
   /// 支付服务
-  late final IAPService _service;
+  late final EasyPaymentService _service;
   
   /// 购买状态存储
-  final _stateStorage = IAPPurchaseStateStorage();
+  final _stateStorage = EasyPaymentPurchaseStateStorage();
 
   /// 日志管理器
-  final _logger = IAPLogger.instance;
+  final _logger = EasyPaymentLogger.instance;
 
   /// 是否已初始化
   bool _isInitialized = false;
@@ -74,27 +73,27 @@ class IAPManager {
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   
   /// 获取状态流
-  Stream<IAPPurchaseInfo> get purchaseStateStream => _stateStorage.stateStream;
+  Stream<EasyPaymentPurchaseInfo> get purchaseStateStream => _stateStorage.stateStream;
 
   /// 配置
-  final IAPConfig _config;
+  final EasyPaymentConfig _config;
 
   /// 正在进行的购买队列
   final Set<String> _processingPurchases = {};
 
-  IAPManager._() : _config = IAPConfig.defaultConfig;
+  EasyPaymentManager._() : _config = EasyPaymentConfig.defaultConfig;
 
   /// 初始化支付管理器
   /// 
   /// 必须在使用其他功能前调用此方法完成初始化。
   /// 
   /// 参数:
-  /// * [service] - 实现了 [IAPService] 接口的支付服务实例，用于处理服务端逻辑
+  /// * [service] - 实现了 [EasyPaymentService] 接口的支付服务实例，用于处理服务端逻辑
   /// * [loggerListener] - 可选的日志监听器，用于接收支付过程中的日志
   /// * [config] - 可选的配置项，如果不提供则使用默认配置
   /// 
   /// 异常:
-  /// * [IAPError] - 当初始化失败时抛出，错误类型为 [IAPErrorType.notInitialized]
+  /// * [EasyPaymentError] - 当初始化失败时抛出，错误类型为 [EasyPaymentErrorType.notInitialized]
   /// 
   /// 示例:
   /// ```dart
@@ -105,9 +104,9 @@ class IAPManager {
   /// );
   /// ```
   Future<void> initialize({
-    required IAPService service,
-    IAPLoggerListener? loggerListener,
-    IAPConfig? config,
+    required EasyPaymentService service,
+    EasyPaymentLoggerListener? loggerListener,
+    EasyPaymentConfig? config,
   }) async {
     if (_isInitialized) return;
 
@@ -116,14 +115,14 @@ class IAPManager {
     if (config != null) {
       _config = config;
       // 更新其他组件的配置
-      IAPError.setConfig(config);
-      IAPLogger.instance.setConfig(config);
+      EasyPaymentError.setConfig(config);
+      EasyPaymentLogger.instance.setConfig(config);
     }
     
     // 检查是否可用
     final bool available = await _iap.isAvailable();
     if (!available) {
-      throw IAPError.notInitialized();
+      throw EasyPaymentError.notInitialized();
     }
 
     // 初始化状态存储
@@ -131,7 +130,7 @@ class IAPManager {
 
     // 设置日志监听器
     if (loggerListener != null) {
-      IAPLogger.instance.addListener(loggerListener);
+      EasyPaymentLogger.instance.addListener(loggerListener);
     }
 
     // 监听购买更新
@@ -163,8 +162,8 @@ class IAPManager {
         },
       );
     } catch (e) {
-      if (e is IAPError) rethrow;
-      throw IAPError.unknown('${operationName}失败', e);
+      if (e is EasyPaymentError) rethrow;
+      throw EasyPaymentError.unknown('${operationName}失败', e);
     }
   }
 
@@ -172,7 +171,7 @@ class IAPManager {
   Future<void> _checkPurchaseAvailability(String productId) async {
     // 检查是否已经在处理中
     if (_processingPurchases.contains(productId)) {
-      throw IAPError.duplicatePurchase(productId);
+      throw EasyPaymentError.duplicatePurchase(productId);
     }
 
     // 检查是否有未完成的购买
@@ -214,12 +213,12 @@ class IAPManager {
           }
           
           // 更新购买状态
-          final purchaseInfo = IAPPurchaseInfo(
+          final purchaseInfo = EasyPaymentPurchaseInfo(
             productId: productId,
             transactionId: existingTransaction.transactionIdentifier,
             originalTransactionId: existingTransaction.originalTransactionIdentifier,
             receiptData: existingTransaction.transactionReceipt,
-            status: IAPPurchaseStatus.completed,
+            status: EasyPaymentPurchaseStatus.completed,
           );
           await _stateStorage.updateState(purchaseInfo);
           _logger.logStateUpdate(purchaseInfo);
@@ -287,12 +286,12 @@ class IAPManager {
             }
             
             // 更新购买状态
-            final purchaseInfo = IAPPurchaseInfo(
+            final purchaseInfo = EasyPaymentPurchaseInfo(
               productId: productId,
               transactionId: unfinishedPurchase.purchaseID,
               orderId: unfinishedPurchase.orderId,
               receiptData: unfinishedPurchase.verificationData.serverVerificationData,
-              status: IAPPurchaseStatus.completed,
+              status: EasyPaymentPurchaseStatus.completed,
             );
             await _stateStorage.updateState(purchaseInfo);
             _logger.logStateUpdate(purchaseInfo);
@@ -320,29 +319,29 @@ class IAPManager {
 
   /// 获取商品详情
   Future<ProductDetails> _getProductDetails(String productId) async {
-    _logger.logStateUpdate(IAPPurchaseInfo(
+    _logger.logStateUpdate(EasyPaymentPurchaseInfo(
       productId: productId,
-      status: IAPPurchaseStatus.pending,
+      status: EasyPaymentPurchaseStatus.pending,
     ));
 
     try {
       final ProductDetailsResponse response = await _iap.queryProductDetails({productId});
 
       if (response.error != null) {
-        throw IAPError.unknown(
+        throw EasyPaymentError.unknown(
           'Failed to load product: ${response.error}',
           response.error,
         );
       }
 
       if (response.productDetails.isEmpty) {
-        throw IAPError.productNotFound(productId);
+        throw EasyPaymentError.productNotFound(productId);
       }
 
       return response.productDetails.first;
     } catch (e) {
-      if (e is IAPError) rethrow;
-      throw IAPError.unknown('Failed to load product', e);
+      if (e is EasyPaymentError) rethrow;
+      throw EasyPaymentError.unknown('Failed to load product', e);
     }
   }
 
@@ -358,12 +357,12 @@ class IAPManager {
     final currentInfo = await _stateStorage.getState(purchaseDetails.productID);
     if (currentInfo == null) return;
 
-    IAPPurchaseInfo updatedInfo;
+    EasyPaymentPurchaseInfo updatedInfo;
     
     switch (purchaseDetails.status) {
       case PurchaseStatus.pending:
         updatedInfo = currentInfo.copyWith(
-          status: IAPPurchaseStatus.processing,
+          status: EasyPaymentPurchaseStatus.processing,
           transactionId: purchaseDetails.purchaseID,
           originalTransactionId: purchaseDetails is AppStorePaymentQueueWrapper 
               ? purchaseDetails.originalTransactionIdentifier 
@@ -389,7 +388,7 @@ class IAPManager {
           }
           
           updatedInfo = currentInfo.copyWith(
-            status: IAPPurchaseStatus.completed,
+            status: EasyPaymentPurchaseStatus.completed,
             transactionId: purchaseDetails.purchaseID,
             originalTransactionId: purchaseDetails is AppStorePaymentQueueWrapper 
                 ? purchaseDetails.originalTransactionIdentifier 
@@ -404,7 +403,7 @@ class IAPManager {
           );
         } catch (e) {
           updatedInfo = currentInfo.copyWith(
-            status: IAPPurchaseStatus.failed,
+            status: EasyPaymentPurchaseStatus.failed,
             error: e.toString(),
             transactionId: purchaseDetails.purchaseID,
           );
@@ -421,7 +420,7 @@ class IAPManager {
 
       case PurchaseStatus.error:
         updatedInfo = currentInfo.copyWith(
-          status: IAPPurchaseStatus.failed,
+          status: EasyPaymentPurchaseStatus.failed,
           error: purchaseDetails.error?.message ?? 'Unknown error',
           transactionId: purchaseDetails.purchaseID,
         );
@@ -436,7 +435,7 @@ class IAPManager {
 
       case PurchaseStatus.canceled:
         updatedInfo = currentInfo.copyWith(
-          status: IAPPurchaseStatus.cancelled,
+          status: EasyPaymentPurchaseStatus.cancelled,
           transactionId: purchaseDetails.purchaseID,
         );
         await _stateStorage.updateState(updatedInfo);
@@ -470,7 +469,7 @@ class IAPManager {
           false,
           result.error,
         );
-        throw IAPError.serverVerifyFailed(result.error ?? 'Unknown error');
+        throw EasyPaymentError.serverVerifyFailed(result.error ?? 'Unknown error');
       }
 
       _logger.logPurchaseVerification(
@@ -486,8 +485,8 @@ class IAPManager {
         false,
         e.toString(),
       );
-      if (e is IAPError) rethrow;
-      throw IAPError.serverVerifyFailed('Server verification failed', e);
+      if (e is EasyPaymentError) rethrow;
+      throw EasyPaymentError.serverVerifyFailed('Server verification failed', e);
     }
   }
 
@@ -500,8 +499,8 @@ class IAPManager {
       );
       return result.orderId;
     } catch (e) {
-      if (e is IAPError) rethrow;
-      throw IAPError.network('Failed to create order', e);
+      if (e is EasyPaymentError) rethrow;
+      throw EasyPaymentError.network('Failed to create order', e);
     }
   }
 
@@ -519,16 +518,16 @@ class IAPManager {
   /// * [type] - 商品类型，默认为一次性消耗品
   /// 
   /// 返回:
-  /// * [IAPResult] - 购买结果，包含订单ID和验证结果
+  /// * [EasyPaymentResult] - 购买结果，包含订单ID和验证结果
   /// 
   /// 异常:
-  /// * [IAPError] - 当购买过程中出现错误时抛出，可能的错误类型包括：
-  ///   - [IAPErrorType.notInitialized] - 管理器未初始化
-  ///   - [IAPErrorType.productNotFound] - 商品不存在
-  ///   - [IAPErrorType.duplicatePurchase] - 存在重复购买
-  ///   - [IAPErrorType.network] - 网络错误
-  ///   - [IAPErrorType.paymentInvalid] - 支付无效
-  ///   - [IAPErrorType.serverVerifyFailed] - 服务端验证失败
+  /// * [EasyPaymentError] - 当购买过程中出现错误时抛出，可能的错误类型包括：
+  ///   - [EasyPaymentErrorType.notInitialized] - 管理器未初始化
+  ///   - [EasyPaymentErrorType.productNotFound] - 商品不存在
+  ///   - [EasyPaymentErrorType.duplicatePurchase] - 存在重复购买
+  ///   - [EasyPaymentErrorType.network] - 网络错误
+  ///   - [EasyPaymentErrorType.paymentInvalid] - 支付无效
+  ///   - [EasyPaymentErrorType.serverVerifyFailed] - 服务端验证失败
   /// 
   /// 示例:
   /// ```dart
@@ -543,18 +542,18 @@ class IAPManager {
   ///     print('Purchase successful: ${result.orderId}');
   ///     // 处理购买成功逻辑
   ///   }
-  /// } on IAPError catch (e) {
+  /// } on EasyPaymentError catch (e) {
   ///   print('Purchase failed: ${e.message}');
   ///   // 处理特定错误
   /// }
   /// ```
-  Future<IAPResult> purchase(
+  Future<EasyPaymentResult> purchase(
     String productId, {
     String? businessProductId,
     IAPProductType type = IAPProductType.consumable,
   }) async {
     if (!_isInitialized) {
-      throw IAPError.notInitialized();
+      throw EasyPaymentError.notInitialized();
     }
 
     _logger.logPurchaseStart(productId, businessProductId);
@@ -580,11 +579,11 @@ class IAPManager {
       _logger.logOrderCreated(productId, orderId);
 
       // 创建并保存购买状态
-      final purchaseInfo = IAPPurchaseInfo(
+      final purchaseInfo = EasyPaymentPurchaseInfo(
         productId: productId,
         businessProductId: businessProductId,
         orderId: orderId,
-        status: IAPPurchaseStatus.pending,
+        status: EasyPaymentPurchaseStatus.pending,
       );
       await _stateStorage.updateState(purchaseInfo);
       _logger.logStateUpdate(purchaseInfo);
@@ -603,12 +602,12 @@ class IAPManager {
       }, '发起购买');
 
       if (!purchaseStarted) {
-        throw IAPError.unknown('Failed to start purchase');
+        throw EasyPaymentError.unknown('Failed to start purchase');
       }
 
       // 等待购买完成
-      final completer = Completer<IAPResult>();
-      late StreamSubscription<IAPPurchaseInfo> subscription;
+      final completer = Completer<EasyPaymentResult>();
+      late StreamSubscription<EasyPaymentPurchaseInfo> subscription;
       
       subscription = purchaseStateStream.listen((info) {
         if (info.productId == productId && info.isTerminalState) {
@@ -627,10 +626,10 @@ class IAPManager {
       return await completer.future;
     } catch (e) {
       // 更新状态为失败
-      final failedInfo = IAPPurchaseInfo(
+      final failedInfo = EasyPaymentPurchaseInfo(
         productId: productId,
         businessProductId: businessProductId,
-        status: IAPPurchaseStatus.failed,
+        status: EasyPaymentPurchaseStatus.failed,
         error: e.toString(),
       );
       await _stateStorage.updateState(failedInfo);
@@ -639,33 +638,33 @@ class IAPManager {
       _logger.logError(productId, e.toString());
       _processingPurchases.remove(productId);
       
-      if (e is IAPError) rethrow;
-      throw IAPError.unknown('Purchase failed', e);
+      if (e is EasyPaymentError) rethrow;
+      throw EasyPaymentError.unknown('Purchase failed', e);
     }
   }
 
   /// 将购买信息转换为结果
-  IAPResult _convertToResult(IAPPurchaseInfo info) {
+  EasyPaymentResult _convertToResult(EasyPaymentPurchaseInfo info) {
     switch (info.status) {
-      case IAPPurchaseStatus.completed:
-        return IAPResult.success(
+      case EasyPaymentPurchaseStatus.completed:
+        return EasyPaymentResult.success(
           productId: info.productId,
           orderId: info.orderId ?? '',
           serverVerifyResult: info.verifyResult ?? {},
         );
-      case IAPPurchaseStatus.failed:
-        return IAPResult.failed(
+      case EasyPaymentPurchaseStatus.failed:
+        return EasyPaymentResult.failed(
           productId: info.productId,
           error: info.error ?? 'Unknown error',
           orderId: info.orderId,
         );
-      case IAPPurchaseStatus.cancelled:
-        return IAPResult.cancelled(
+      case EasyPaymentPurchaseStatus.cancelled:
+        return EasyPaymentResult.cancelled(
           productId: info.productId,
           orderId: info.orderId,
         );
       default:
-        return IAPResult.failed(
+        return EasyPaymentResult.failed(
           productId: info.productId,
           error: 'Unexpected state: ${info.status}',
           orderId: info.orderId,
@@ -725,31 +724,31 @@ class IAPManager {
   /// * [productId] - 要查询的商品 ID
   /// 
   /// 返回:
-  /// * [IAPPurchaseInfo]? - 购买状态信息，如果没有购买记录则返回 null
+  /// * [EasyPaymentPurchaseInfo]? - 购买状态信息，如果没有购买记录则返回 null
   /// 
   /// 示例:
   /// ```dart
   /// final state = await manager.getPurchaseState('premium_feature');
-  /// if (state?.status == IAPPurchaseStatus.completed) {
+  /// if (state?.status == EasyPaymentPurchaseStatus.completed) {
   ///   // 处理已完成的购买
   /// }
   /// ```
-  Future<IAPPurchaseInfo?> getPurchaseState(String productId) async {
+  Future<EasyPaymentPurchaseInfo?> getPurchaseState(String productId) async {
     return _stateStorage.getState(productId);
   }
 
   /// 获取所有购买状态
-  Future<List<IAPPurchaseInfo>> getAllPurchaseStates() async {
+  Future<List<EasyPaymentPurchaseInfo>> getAllPurchaseStates() async {
     return _stateStorage.getAllStates();
   }
 
   /// 获取未完成的购买
-  Future<List<IAPPurchaseInfo>> getPendingPurchases() async {
+  Future<List<EasyPaymentPurchaseInfo>> getPendingPurchases() async {
     return _stateStorage.getPendingStates();
   }
 
   /// 获取已完成的购买
-  Future<List<IAPPurchaseInfo>> getCompletedPurchases() async {
+  Future<List<EasyPaymentPurchaseInfo>> getCompletedPurchases() async {
     return _stateStorage.getCompletedStates();
   }
 
@@ -769,7 +768,7 @@ class IAPManager {
     _subscription = null;
 
     _stateStorage.dispose();
-    IAPLogger.instance.dispose();
+    EasyPaymentLogger.instance.dispose();
     
     _processingPurchases.clear();
     _instance = null;
