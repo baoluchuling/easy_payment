@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/iap_purchase_info.dart';
+import '../models/easy_payment_purchase_info.dart';
 
 /// IAP purchase state storage manager
 class EasyPaymentPurchaseStateStorage {
