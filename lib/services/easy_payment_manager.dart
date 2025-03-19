@@ -5,14 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:retry/retry.dart';
 import 'package:shared_preferences.dart';
-import 'easy_payment_error.dart';
-import 'easy_payment_result.dart';
-import 'easy_payment_purchase_info.dart';
-import 'easy_payment_service.dart';
-import 'easy_payment_purchase_state_storage.dart';
-import 'easy_payment_logger.dart';
-import 'easy_payment_logger_listener.dart';
-import 'easy_payment_config.dart';
+import '../models/easy_payment_error.dart';
+import '../models/easy_payment_result.dart';
+import '../models/easy_payment_purchase_info.dart';
+import '../core/easy_payment_service.dart';
+import '../utils/easy_payment_purchase_state_storage.dart';
+import '../utils/easy_payment_logger.dart';
+import '../core/easy_payment_logger_listener.dart';
+import '../core/easy_payment_config.dart';
 
 /// IAP支付管理器
 /// 
