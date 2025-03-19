@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:retry/retry.dart';
-import 'package:shared_preferences.dart';
 import '../models/easy_payment_error.dart';
 import '../models/easy_payment_result.dart';
 import '../models/easy_payment_purchase_info.dart';
