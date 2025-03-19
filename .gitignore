@@ -5,11 +5,9 @@
 *.swp
 .DS_Store
 .atom/
-.build/
 .buildlog/
 .history
 .svn/
-.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -17,9 +15,6 @@ migrate_working_dir/
 *.ipr
 *.iws
 .idea/
-.fvm/
-.vscode/
-.fvmrc
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
@@ -29,11 +24,8 @@ migrate_working_dir/
 # Flutter/Dart/Pub related
 # Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
 /pubspec.lock
-# **/doc/api/
+**/doc/api/
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 build/
-
-# FVM Version Cache
-.fvm/
