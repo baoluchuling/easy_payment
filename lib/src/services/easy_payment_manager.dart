@@ -100,7 +100,7 @@ class EasyPaymentManager {
   /// await manager.initialize(
   ///   service: MyIAPService(),
   ///   loggerListener: MyLoggerListener(),
-  ///   config: IAPConfig(maxRetries: 3),
+  ///   config: EasyPaymentConfig(maxRetries: 3),
   /// );
   /// ```
   Future<void> initialize({
