@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
 }
 
 /// 中文错误消息
-class ChineseErrorLocalizations implements IAPErrorLocalizations {
+class ChineseErrorLocalizations implements EasyPaymentErrorLocalizations {
   const ChineseErrorLocalizations();
 
   @override
@@ -57,7 +57,7 @@ class ChineseErrorLocalizations implements IAPErrorLocalizations {
 }
 
 /// 中文状态文本
-class ChineseStatusLocalizations implements IAPStatusLocalizations {
+class ChineseStatusLocalizations implements EasyPaymentStatusLocalizations {
   const ChineseStatusLocalizations();
 
   @override
@@ -78,7 +78,7 @@ class ChineseStatusLocalizations implements IAPStatusLocalizations {
 }
 
 /// 中文日志消息
-class ChineseLogLocalizations implements IAPLogLocalizations {
+class ChineseLogLocalizations implements EasyPaymentLogLocalizations {
   const ChineseLogLocalizations();
 
   @override
@@ -105,7 +105,7 @@ class ChineseLogLocalizations implements IAPLogLocalizations {
 }
 
 /// 自定义日志监听器
-class CustomLoggerListener implements IAPLoggerListener {
+class CustomLoggerListener implements EasyPaymentLoggerListener {
   @override
   void onLog(String type, Map<String, dynamic> data) {
     debugPrint('收到日志：[$type] ${data.toString()}');
@@ -120,7 +120,7 @@ class PaymentDemo extends StatefulWidget {
 }
 
 class _PaymentDemoState extends State<PaymentDemo> {
-  late final IAPManager iapManager;
+  late final EasyPaymentManager iapManager;
   String _purchaseStatus = '未开始购买';
   bool _loading = false;
   
@@ -131,7 +131,7 @@ class _PaymentDemoState extends State<PaymentDemo> {
   }
 
   Future<void> _initializePayment() async {
-    iapManager = IAPManager.instance;
+    iapManager = EasyPaymentManager.instance;
     await iapManager.initialize(
       service: DefaultIAPService(),
       config: IAPConfig(
