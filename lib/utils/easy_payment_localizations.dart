@@ -1,4 +1,4 @@
-import '../core/easy_payment_error.dart';
+import '../models/easy_payment_error.dart';
 import '../models/easy_payment_purchase_info.dart';
 
 /// 错误消息国际化接口
