@@ -35,7 +35,7 @@ class EasyPaymentConfig {
   final bool debugMode;
 
   /// 日志级别
-  final LogLevel logLevel;
+  final EasyPaymentLogLevel logLevel;
 
   /// 创建配置实例
   const EasyPaymentConfig({
@@ -47,7 +47,7 @@ class EasyPaymentConfig {
     Duration? retryInterval,
     this.autoFinishTransaction = true,
     this.debugMode = false,
-    this.logLevel = LogLevel.info,
+    this.logLevel = EasyPaymentLogLevel.info,
   })  : errorLocalizations = errorLocalizations ?? const DefaultEasyPaymentErrorLocalizations(),
         statusLocalizations = statusLocalizations ?? const DefaultEasyPaymentStatusLocalizations(),
         logLocalizations = logLocalizations ?? const DefaultEasyPaymentLogLocalizations(),
@@ -72,7 +72,7 @@ class EasyPaymentConfig {
     Duration? retryInterval,
     bool? autoFinishTransaction,
     bool? debugMode,
-    LogLevel? logLevel,
+    EasyPaymentLogLevel? logLevel,
   }) {
     return EasyPaymentConfig(
       loggerListeners: loggerListeners ?? this.loggerListeners,
