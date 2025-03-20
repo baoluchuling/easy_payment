@@ -51,16 +51,16 @@ class EasyPaymentLogger {
   }
 
   /// 是否应该记录该级别的日志
-  bool _shouldLog(LogLevel level) {
+  bool _shouldLog(EasyPaymentLogLevel level) {
     // 如果不是调试模式，只记录 warning 和 error
-    if (!_config.debugMode && level.index < LogLevel.warning.index) {
+    if (!_config.debugMode && level.index < EasyPaymentLogLevel.warning.index) {
       return false;
     }
     return level.index >= _config.logLevel.index;
   }
 
   /// 广播日志
-  void _broadcastLog(String type, Map<String, dynamic> data, [LogLevel level = LogLevel.info]) {
+  void _broadcastLog(String type, Map<String, dynamic> data, [EasyPaymentLogLevel level = EasyPaymentLogLevel.info]) {
     if (!_shouldLog(level)) return;
 
     final message = _config.logLocalizations.getLogMessage(type, data);
@@ -86,7 +86,7 @@ class EasyPaymentLogger {
       if (info.error != null) 'error': info.error!,
       if (info.verifyResult != null) 'verify_result': info.verifyResult!,
     };
-    _broadcastLog('state_update', data, LogLevel.debug);
+    _broadcastLog('state_update', data, EasyPaymentLogLevel.debug);
   }
 
   /// 记录购买开始
@@ -94,7 +94,7 @@ class EasyPaymentLogger {
     _broadcastLog('purchase_start', {
       'product_id': productId,
       if (businessProductId != null) 'business_product_id': businessProductId,
-    }, LogLevel.info);
+    }, EasyPaymentLogLevel.info);
   }
 
   /// 记录订单创建
@@ -102,7 +102,7 @@ class EasyPaymentLogger {
     _broadcastLog('order_created', {
       'product_id': productId,
       'order_id': orderId,
-    }, LogLevel.debug);
+    }, EasyPaymentLogLevel.debug);
   }
 
   /// 记录购买验证
@@ -117,7 +117,7 @@ class EasyPaymentLogger {
       'transaction_id': transactionId,
       'success': success,
       if (error != null) 'error': error,
-    }, success ? LogLevel.info : LogLevel.error);
+    }, success ? EasyPaymentLogLevel.info : EasyPaymentLogLevel.error);
   }
 
   /// 记录购买完成
@@ -126,7 +126,7 @@ class EasyPaymentLogger {
       'product_id': productId,
       'success': success,
       if (error != null) 'error': error,
-    }, success ? LogLevel.info : LogLevel.error);
+    }, success ? EasyPaymentLogLevel.info : EasyPaymentLogLevel.error);
   }
 
   /// 记录错误
@@ -136,7 +136,7 @@ class EasyPaymentLogger {
       'message': message,
       if (extra != null) ...extra,
     };
-    _broadcastLog('error', data, LogLevel.error);
+    _broadcastLog('error', data, EasyPaymentLogLevel.error);
   }
 
   /// 记录调试信息
@@ -146,7 +146,7 @@ class EasyPaymentLogger {
       'message': message,
       if (extra != null) ...extra,
     };
-    _broadcastLog('debug', data, LogLevel.debug);
+    _broadcastLog('debug', data, EasyPaymentLogLevel.debug);
   }
 
   /// 记录详细信息
@@ -156,7 +156,7 @@ class EasyPaymentLogger {
       'message': message,
       if (extra != null) ...extra,
     };
-    _broadcastLog('verbose', data, LogLevel.verbose);
+    _broadcastLog('verbose', data, EasyPaymentLogLevel.verbose);
   }
 
   /// 释放资源
