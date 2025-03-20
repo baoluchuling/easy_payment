@@ -108,7 +108,7 @@ class EasyPaymentLogger {
   /// 记录购买验证
   void logPurchaseVerification(
     String productId,
-    String transactionId,
+    String? transactionId,
     bool success, [
     String? error,
   ]) {

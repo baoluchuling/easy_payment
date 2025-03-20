@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:retry/retry.dart';
 import '../models/easy_payment_error.dart';
 import '../models/easy_payment_result.dart';
@@ -216,7 +217,7 @@ class EasyPaymentManager {
             transactionId: existingTransaction.transactionIdentifier,
             originalTransactionId: existingTransaction.originalTransactionIdentifier,
             receiptData: existingTransaction.transactionReceipt,
-            status: EasyPaymentPurchaseStatus.completed,
+            status: EasyPaymentPurchaseStatus.success,
           );
           await _stateStorage.updateState(purchaseInfo);
           _logger.logStateUpdate(purchaseInfo);
@@ -288,7 +289,7 @@ class EasyPaymentManager {
               transactionId: unfinishedPurchase.purchaseID,
               orderId: unfinishedPurchase.orderId,
               receiptData: unfinishedPurchase.verificationData.serverVerificationData,
-              status: EasyPaymentPurchaseStatus.completed,
+              status: EasyPaymentPurchaseStatus.success,
             );
             await _stateStorage.updateState(purchaseInfo);
             _logger.logStateUpdate(purchaseInfo);
@@ -359,7 +360,7 @@ class EasyPaymentManager {
     switch (purchaseDetails.status) {
       case PurchaseStatus.pending:
         updatedInfo = currentInfo.copyWith(
-          status: EasyPaymentPurchaseStatus.processing,
+          status: EasyPaymentPurchaseStatus.pending,
           transactionId: purchaseDetails.purchaseID,
           originalTransactionId: purchaseDetails is AppStorePaymentQueueWrapper 
               ? purchaseDetails.originalTransactionIdentifier 
@@ -532,7 +533,7 @@ class EasyPaymentManager {
   ///   final result = await manager.purchase(
   ///     'premium_feature',
   ///     businessProductId: 'business_123',
-  ///     type: IAPProductType.nonConsumable,
+  ///     type: EasyPaymentProductType.nonConsumable,
   ///   );
   ///   
   ///   if (result.success) {
@@ -547,7 +548,7 @@ class EasyPaymentManager {
   Future<EasyPaymentResult> purchase(
     String productId, {
     String? businessProductId,
-    IAPProductType type = IAPProductType.consumable,
+    EasyPaymentProductType type = EasyPaymentProductType.consumable,
   }) async {
     if (!_isInitialized) {
       throw EasyPaymentError.notInitialized();
@@ -591,7 +592,7 @@ class EasyPaymentManager {
       );
       
       bool purchaseStarted = await _withRetry(() async {
-        if (type == IAPProductType.consumable) {
+        if (type == EasyPaymentProductType.consumable) {
           return await _iap.buyConsumable(purchaseParam: purchaseParam);
         } else {
           return await _iap.buyNonConsumable(purchaseParam: purchaseParam);

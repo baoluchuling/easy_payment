@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/easy_payment_purchase_info.dart';
+import '../models/easy_payment_result.dart';
 
 /// IAP purchase state storage manager
 class EasyPaymentPurchaseStateStorage {
@@ -88,7 +89,7 @@ class EasyPaymentPurchaseStateStorage {
   /// Get completed purchases
   List<EasyPaymentPurchaseInfo> getCompletedStates() {
     return _stateCache.values
-        .where((info) => info.status == IAPPurchaseStatus.completed)
+        .where((info) => info.status == EasyPaymentPurchaseStatus.success)
         .toList();
   }
 

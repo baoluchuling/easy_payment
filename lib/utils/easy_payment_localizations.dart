@@ -1,5 +1,5 @@
 import '../models/easy_payment_error.dart';
-import '../models/easy_payment_purchase_info.dart';
+import '../models/easy_payment_result.dart';
 
 /// 错误消息国际化接口
 abstract class EasyPaymentErrorLocalizations {
@@ -80,7 +80,7 @@ class DefaultEasyPaymentStatusLocalizations implements EasyPaymentStatusLocaliza
           return '等待中';
         case EasyPaymentPurchaseStatus.processing:
           return '处理中';
-        case EasyPaymentPurchaseStatus.completed:
+        case EasyPaymentPurchaseStatus.success:
           return '已完成';
         case EasyPaymentPurchaseStatus.failed:
           return '失败';
@@ -95,7 +95,7 @@ class DefaultEasyPaymentStatusLocalizations implements EasyPaymentStatusLocaliza
         return 'Pending';
       case EasyPaymentPurchaseStatus.processing:
         return 'Processing';
-      case EasyPaymentPurchaseStatus.completed:
+      case EasyPaymentPurchaseStatus.success:
         return 'Completed';
       case EasyPaymentPurchaseStatus.failed:
         return 'Failed';

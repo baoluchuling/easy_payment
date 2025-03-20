@@ -1,7 +1,7 @@
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 /// Payment result status
-enum IAPStatus {
+enum EasyPaymentPurchaseStatus {
   /// Payment successful
   success,
 
@@ -11,6 +11,8 @@ enum IAPStatus {
   /// Payment cancelled
   cancelled,
 
+  processing,
+
   /// Payment pending
   pending,
 }
@@ -18,7 +20,7 @@ enum IAPStatus {
 /// Payment result model
 class EasyPaymentResult {
   /// Payment status
-  final IAPStatus status;
+  final EasyPaymentPurchaseStatus status;
 
   /// Error message
   final String? error;
@@ -45,7 +47,7 @@ class EasyPaymentResult {
   });
 
   /// Check if payment was successful
-  bool get isSuccess => status == IAPStatus.success;
+  bool get isSuccess => status == EasyPaymentPurchaseStatus.success;
 
   /// Create a successful result
   factory EasyPaymentResult.success({
@@ -55,7 +57,7 @@ class EasyPaymentResult {
     required Map<String, dynamic> serverVerifyResult,
   }) {
     return EasyPaymentResult(
-      status: IAPStatus.success,
+      status: EasyPaymentPurchaseStatus.success,
       productId: productId,
       orderId: orderId,
       purchaseDetails: purchaseDetails,
@@ -71,7 +73,7 @@ class EasyPaymentResult {
     PurchaseDetails? purchaseDetails,
   }) {
     return EasyPaymentResult(
-      status: IAPStatus.failed,
+      status: EasyPaymentPurchaseStatus.failed,
       error: error,
       productId: productId,
       orderId: orderId,
@@ -86,7 +88,7 @@ class EasyPaymentResult {
     PurchaseDetails? purchaseDetails,
   }) {
     return EasyPaymentResult(
-      status: IAPStatus.cancelled,
+      status: EasyPaymentPurchaseStatus.cancelled,
       productId: productId,
       orderId: orderId,
       purchaseDetails: purchaseDetails,
@@ -100,7 +102,7 @@ class EasyPaymentResult {
     required PurchaseDetails purchaseDetails,
   }) {
     return EasyPaymentResult(
-      status: IAPStatus.pending,
+      status: EasyPaymentPurchaseStatus.pending,
       productId: productId,
       orderId: orderId,
       purchaseDetails: purchaseDetails,

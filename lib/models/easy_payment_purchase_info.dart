@@ -1,19 +1,8 @@
-/// 购买状态
-enum IAPPurchaseStatus {
-  /// 等待中
-  pending,
-  /// 处理中
-  processing,
-  /// 已完成
-  completed,
-  /// 已失败
-  failed,
-  /// 已取消
-  cancelled,
-}
+
+import 'easy_payment_result.dart';
 
 /// 商品类型
-enum IAPProductType {
+enum EasyPaymentProductType {
   /// 消耗型商品
   consumable,
   /// 非消耗型商品
@@ -44,7 +33,7 @@ class EasyPaymentPurchaseInfo {
   final int createTime;
 
   /// 购买状态
-  final IAPPurchaseStatus status;
+  final EasyPaymentPurchaseStatus status;
 
   /// 错误信息
   final String? error;
@@ -52,14 +41,14 @@ class EasyPaymentPurchaseInfo {
   /// 验证结果
   final Map<String, dynamic>? verifyResult;
 
-  const EasyPaymentPurchaseInfo({
+  EasyPaymentPurchaseInfo({
     required this.productId,
     this.transactionId,
     this.originalTransactionId,
     this.receiptData,
     this.orderId,
     this.businessProductId,
-    this.status = IAPPurchaseStatus.pending,
+    this.status = EasyPaymentPurchaseStatus.pending,
     this.error,
     this.verifyResult,
     int? createTime,
@@ -74,9 +63,9 @@ class EasyPaymentPurchaseInfo {
       receiptData: json['receiptData'] as String?,
       orderId: json['orderId'] as String?,
       businessProductId: json['businessProductId'] as String?,
-      status: IAPPurchaseStatus.values.firstWhere(
+      status: EasyPaymentPurchaseStatus.values.firstWhere(
         (e) => e.name == (json['status'] as String?),
-        orElse: () => IAPPurchaseStatus.pending,
+        orElse: () => EasyPaymentPurchaseStatus.pending,
       ),
       error: json['error'] as String?,
       verifyResult: json['verifyResult'] as Map<String, dynamic>?,
@@ -107,7 +96,7 @@ class EasyPaymentPurchaseInfo {
     String? receiptData,
     String? orderId,
     String? businessProductId,
-    IAPPurchaseStatus? status,
+    EasyPaymentPurchaseStatus? status,
     String? error,
     Map<String, dynamic>? verifyResult,
   }) {
@@ -126,7 +115,7 @@ class EasyPaymentPurchaseInfo {
   }
 
   /// 判断是否是终态
-  bool get isTerminalState => status == IAPPurchaseStatus.completed ||
-      status == IAPPurchaseStatus.failed ||
-      status == IAPPurchaseStatus.cancelled;
+  bool get isTerminalState => status == EasyPaymentPurchaseStatus.success ||
+      status == EasyPaymentPurchaseStatus.failed ||
+      status == EasyPaymentPurchaseStatus.cancelled;
 }
