@@ -53,7 +53,7 @@ class EasyPaymentResult {
   factory EasyPaymentResult.success({
     required String productId,
     required String orderId,
-    required PurchaseDetails purchaseDetails,
+    PurchaseDetails? purchaseDetails,
     required Map<String, dynamic> serverVerifyResult,
   }) {
     return EasyPaymentResult(

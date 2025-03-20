@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart'
+
 import 'package:retry/retry.dart';
 import '../models/easy_payment_error.dart';
 import '../models/easy_payment_result.dart';
@@ -11,7 +14,6 @@ import '../models/easy_payment_purchase_info.dart';
 import '../core/easy_payment_service.dart';
 import '../utils/easy_payment_purchase_state_storage.dart';
 import '../utils/easy_payment_logger.dart';
-import '../core/easy_payment_logger_listener.dart';
 import '../core/easy_payment_config.dart';
 
 /// IAP支付管理器
@@ -113,9 +115,7 @@ class EasyPaymentManager {
     _service = service;
     
     if (config != null) {
-      _config = config;
       // 更新其他组件的配置
-      EasyPaymentError.setConfig(config);
       EasyPaymentLogger.instance.setConfig(config);
     }
     
@@ -150,20 +150,22 @@ class EasyPaymentManager {
     String operationName,
   ) async {
     try {
+      int attempt = 0;
       return await retry(
         operation,
-        retryOptions: _config.retryOptions,
-        onRetry: (exception, attempt) {
+        retryIf: (exception) => exception is EasyPaymentError,
+        onRetry: (exception) {
+          attempt++;
           _logger.logError(
-            'retry',
-            '${operationName}失败，准备第${attempt + 1}次重试',
-            {'error': exception.toString()},
+        'retry',
+        '$operationName失败，准备第$attempt次重试',
+        {'error': exception.toString()},
           );
         },
       );
     } catch (e) {
       if (e is EasyPaymentError) rethrow;
-      throw EasyPaymentError.unknown('${operationName}失败', e);
+      throw EasyPaymentError.unknown('$operationName失败', e);
     }
   }
 
@@ -173,50 +175,69 @@ class EasyPaymentManager {
     if (_processingPurchases.contains(productId)) {
       throw EasyPaymentError.duplicatePurchase(productId);
     }
-
+    
     // 检查是否有未完成的购买
     final existingState = await _stateStorage.getState(productId);
     if (existingState != null && !existingState.isTerminalState) {
       _logger.logError(productId, '存在未完成的购买，但允许继续');
     }
-
+    
+    // 获取所有已保存的状态，用于比对交易ID
+    final allSavedStates = await _stateStorage.getAllStates();
+    
     if (Platform.isIOS) {
       // iOS 特殊处理：检查是否有未完成的交易
       final transactions = await SKPaymentQueueWrapper().transactions();
-      final existingTransaction = transactions
-          .where((tx) => tx.payment.productIdentifier == productId)
-          .firstOrNull;
+      final existingTransactions = transactions
+          .where((tx) => tx.payment.productIdentifier == productId);
       
-      if (existingTransaction != null) {
+      for (final existingTransaction in existingTransactions) {
         _logger.logError(
           productId,
           '发现未完成的iOS交易',
           {'transactionId': existingTransaction.transactionIdentifier},
         );
-
+        
+        // 检查是否有对应的保存记录
+        final savedRecord = allSavedStates.where((state) => 
+          state.transactionId == existingTransaction.transactionIdentifier).lastOrNull;
+        
         try {
-          // 服务端验证
-          await _withRetry(
-            () => _service.verifyPurchase(
-              productId: productId,
-              transactionId: existingTransaction.transactionIdentifier,
-              originalTransactionId: existingTransaction.originalTransactionIdentifier,
-              receiptData: existingTransaction.transactionReceipt,
-            ),
-            '验证未完成交易',
-          );
           
-          // 完成购买
-          if (_config.autoFinishTransaction) {
-            await existingTransaction.finish();
+          // 仅当有保存记录时才完成购买
+          if (savedRecord != null && _config.autoFinishTransaction) {
+            // 服务端验证
+            await _withRetry(
+              () => _service.verifyPurchase(
+                orderId: savedRecord.orderId,
+                productId: productId,
+                transactionId: existingTransaction.transactionIdentifier,
+                originalTransactionId: existingTransaction.originalTransaction?.transactionIdentifier,
+              ),
+              '验证未完成交易',
+            );
           }
+
+          try {
+              await SKPaymentQueueWrapper().finishTransaction(existingTransaction);
+              _logger.logVerbose(
+                productId,
+                '关闭已保存的交易',
+                {'transactionId': existingTransaction.transactionIdentifier},
+              );
+            } catch (e) {
+              _logger.logError(
+                productId,
+                '关闭交易失败',
+                {'transactionId': existingTransaction.transactionIdentifier, 'error': e.toString()},
+              );
+            }
           
           // 更新购买状态
           final purchaseInfo = EasyPaymentPurchaseInfo(
             productId: productId,
             transactionId: existingTransaction.transactionIdentifier,
-            originalTransactionId: existingTransaction.originalTransactionIdentifier,
-            receiptData: existingTransaction.transactionReceipt,
+            originalTransactionId: existingTransaction.originalTransaction?.transactionIdentifier,
             status: EasyPaymentPurchaseStatus.success,
           );
           await _stateStorage.updateState(purchaseInfo);
@@ -236,7 +257,7 @@ class EasyPaymentManager {
     } else if (Platform.isAndroid) {
       // Android 平台：使用 InAppPurchaseAndroidPlatformAddition 查询未完成交易
       try {
-        _logger.logError(productId, '开始检查Android未完成交易');
+        _logger.logVerbose(productId, '开始检查Android未完成交易');
         
         final androidAddition = _iap.getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
         
@@ -252,42 +273,58 @@ class EasyPaymentManager {
         }
         
         // 查找当前商品的未完成购买
-        final unfinishedPurchase = response.pastPurchases
-            .where((purchase) => purchase.productID == productId && purchase.pendingCompletePurchase)
-            .firstOrNull;
+        final unfinishedPurchases = response.pastPurchases
+            .where((purchase) => purchase.productID == productId && purchase.pendingCompletePurchase);
         
-        if (unfinishedPurchase != null) {
-          _logger.logError(
+        for (final unfinishedPurchase in unfinishedPurchases) {
+          _logger.logVerbose(
             productId,
             '发现未完成的Android交易',
             {
               'purchaseId': unfinishedPurchase.purchaseID,
-              'orderId': unfinishedPurchase.orderId,
             },
           );
           
+          // 检查是否有对应的保存记录
+        final savedRecord = allSavedStates.where((state) => 
+            state.transactionId == unfinishedPurchase.purchaseID).lastOrNull;
+          
           try {
-            // 服务端验证
-            await _withRetry(
-              () => _service.verifyPurchase(
-                productId: productId,
-                transactionId: unfinishedPurchase.purchaseID,
-                orderId: unfinishedPurchase.orderId,
-                receiptData: unfinishedPurchase.verificationData.serverVerificationData,
-              ),
-              '验证未完成交易',
-            );
             
-            // 完成购买
-            if (_config.autoFinishTransaction) {
-              await _iap.completePurchase(unfinishedPurchase);
+            if (savedRecord != null && _config.autoFinishTransaction) {
+              // 服务端验证
+              await _withRetry(
+                () => _service.verifyPurchase(
+                  productId: productId,
+                  transactionId: unfinishedPurchase.purchaseID,
+                  orderId: savedRecord.orderId,
+                  receiptData: unfinishedPurchase.verificationData.serverVerificationData,
+                ),
+                '验证未完成交易',
+              );
             }
+
+            // 完成购买
+            try {
+                await _iap.completePurchase(unfinishedPurchase);
+                _logger.logVerbose(
+                  productId,
+                  '关闭已保存的交易',
+                  {'purchaseId': unfinishedPurchase.purchaseID},
+                );
+              } catch (e) {
+                _logger.logError(
+                  productId,
+                  '关闭交易失败',
+                  {'purchaseId': unfinishedPurchase.purchaseID, 'error': e.toString()},
+                );
+              }
             
             // 更新购买状态
             final purchaseInfo = EasyPaymentPurchaseInfo(
               productId: productId,
               transactionId: unfinishedPurchase.purchaseID,
-              orderId: unfinishedPurchase.orderId,
+              orderId: savedRecord?.orderId,
               receiptData: unfinishedPurchase.verificationData.serverVerificationData,
               status: EasyPaymentPurchaseStatus.success,
             );
@@ -352,7 +389,7 @@ class EasyPaymentManager {
 
   /// 处理单个购买更新
   Future<void> _handlePurchaseUpdate(PurchaseDetails purchaseDetails) async {
-    final currentInfo = await _stateStorage.getState(purchaseDetails.productID);
+    final currentInfo = _stateStorage.getState(purchaseDetails.productID);
     if (currentInfo == null) return;
 
     EasyPaymentPurchaseInfo updatedInfo;
@@ -362,8 +399,8 @@ class EasyPaymentManager {
         updatedInfo = currentInfo.copyWith(
           status: EasyPaymentPurchaseStatus.pending,
           transactionId: purchaseDetails.purchaseID,
-          originalTransactionId: purchaseDetails is AppStorePaymentQueueWrapper 
-              ? purchaseDetails.originalTransactionIdentifier 
+            originalTransactionId: Platform.isIOS && purchaseDetails is AppStorePurchaseDetails
+              ? purchaseDetails.skPaymentTransaction.originalTransaction?.transactionIdentifier
               : null,
           receiptData: purchaseDetails.verificationData.serverVerificationData,
         );
@@ -386,10 +423,10 @@ class EasyPaymentManager {
           }
           
           updatedInfo = currentInfo.copyWith(
-            status: EasyPaymentPurchaseStatus.completed,
+            status: EasyPaymentPurchaseStatus.success,
             transactionId: purchaseDetails.purchaseID,
-            originalTransactionId: purchaseDetails is AppStorePaymentQueueWrapper 
-                ? purchaseDetails.originalTransactionIdentifier 
+            originalTransactionId: purchaseDetails is AppStorePurchaseDetails 
+                ? purchaseDetails.skPaymentTransaction.originalTransaction?.transactionIdentifier 
                 : null,
             receiptData: purchaseDetails.verificationData.serverVerificationData,
             verifyResult: verifyResult,
@@ -453,8 +490,8 @@ class EasyPaymentManager {
         productId: purchaseDetails.productID,
         orderId: purchaseInfo?.orderId,
         transactionId: purchaseDetails.purchaseID,
-        originalTransactionId: purchaseDetails is AppStorePaymentQueueWrapper 
-            ? purchaseDetails.originalTransactionIdentifier 
+        originalTransactionId: purchaseDetails is AppStorePurchaseDetails 
+            ? purchaseDetails.skPaymentTransaction.originalTransaction?.transactionIdentifier 
             : null,
         receiptData: purchaseDetails.verificationData.serverVerificationData,
         businessProductId: purchaseInfo?.businessProductId,
@@ -613,7 +650,7 @@ class EasyPaymentManager {
           final result = _convertToResult(info);
           _logger.logPurchaseComplete(
             productId, 
-            result.success,
+            result.isSuccess,
             result.error,
           );
           _processingPurchases.remove(productId);
@@ -644,7 +681,7 @@ class EasyPaymentManager {
   /// 将购买信息转换为结果
   EasyPaymentResult _convertToResult(EasyPaymentPurchaseInfo info) {
     switch (info.status) {
-      case EasyPaymentPurchaseStatus.completed:
+      case EasyPaymentPurchaseStatus.success:
         return EasyPaymentResult.success(
           productId: info.productId,
           orderId: info.orderId ?? '',

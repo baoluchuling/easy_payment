@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../core/easy_payment_logger_listener.dart';
+import '../models/easy_payment_error.dart';
 import '../models/easy_payment_purchase_info.dart';
 import '../core/easy_payment_config.dart';
 

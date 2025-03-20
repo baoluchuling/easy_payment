@@ -1,3 +1,18 @@
+
+/// 日志级别
+enum EasyPaymentLogLevel {
+  /// 详细信息
+  verbose,
+  /// 调试信息
+  debug,
+  /// 一般信息
+  info,
+  /// 警告信息
+  warning,
+  /// 错误信息
+  error,
+}
+
 /// IAP错误类型
 enum EasyPaymentErrorType {
   /// 未初始化
