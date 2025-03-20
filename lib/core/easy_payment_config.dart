@@ -14,13 +14,13 @@ class EasyPaymentConfig {
   final Set<EasyPaymentLoggerListener> loggerListeners;
 
   /// 错误消息本地化
-  final IAPErrorLocalizations errorLocalizations;
+  final EasyPaymentErrorLocalizations errorLocalizations;
 
   /// 状态文本本地化
-  final IAPStatusLocalizations statusLocalizations;
+  final EasyPaymentStatusLocalizations statusLocalizations;
 
   /// 日志消息本地化
-  final IAPLogLocalizations logLocalizations;
+  final EasyPaymentLogLocalizations logLocalizations;
 
   /// 最大重试次数
   final int maxRetries;
@@ -40,9 +40,9 @@ class EasyPaymentConfig {
   /// 创建配置实例
   const EasyPaymentConfig({
     this.loggerListeners = const {},
-    IAPErrorLocalizations? errorLocalizations,
-    IAPStatusLocalizations? statusLocalizations,
-    IAPLogLocalizations? logLocalizations,
+    EasyPaymentErrorLocalizations? errorLocalizations,
+    EasyPaymentStatusLocalizations? statusLocalizations,
+    EasyPaymentLogLocalizations? logLocalizations,
     this.maxRetries = DEFAULT_MAX_RETRIES,
     Duration? retryInterval,
     this.autoFinishTransaction = true,
@@ -65,9 +65,9 @@ class EasyPaymentConfig {
   /// 创建新配置实例
   EasyPaymentConfig copyWith({
     Set<EasyPaymentLoggerListener>? loggerListeners,
-    IAPErrorLocalizations? errorLocalizations,
-    IAPStatusLocalizations? statusLocalizations,
-    IAPLogLocalizations? logLocalizations,
+    EasyPaymentErrorLocalizations? errorLocalizations,
+    EasyPaymentStatusLocalizations? statusLocalizations,
+    EasyPaymentLogLocalizations? logLocalizations,
     int? maxRetries,
     Duration? retryInterval,
     bool? autoFinishTransaction,
