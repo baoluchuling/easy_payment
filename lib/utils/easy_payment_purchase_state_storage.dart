@@ -13,13 +13,13 @@ class EasyPaymentPurchaseStateStorage {
   static const String _stateKey = 'iap_purchase_states';
 
   /// Purchase state cache
-  final Map<String, IAPPurchaseInfo> _stateCache = {};
+  final Map<String, EasyPaymentPurchaseInfo> _stateCache = {};
 
   /// State change controller
-  final _stateController = StreamController<IAPPurchaseInfo>.broadcast();
+  final _stateController = StreamController<EasyPaymentPurchaseInfo>.broadcast();
 
   /// Get state change stream
-  Stream<IAPPurchaseInfo> get stateStream => _stateController.stream;
+  Stream<EasyPaymentPurchaseInfo> get stateStream => _stateController.stream;
 
   /// Initialize storage
   Future<void> initialize() async {
@@ -34,7 +34,7 @@ class EasyPaymentPurchaseStateStorage {
       if (savedStates != null) {
         final List<dynamic> states = json.decode(savedStates);
         for (final state in states) {
-          final purchaseInfo = IAPPurchaseInfo.fromJson(state);
+          final purchaseInfo = EasyPaymentPurchaseInfo.fromJson(state);
           _stateCache[purchaseInfo.productId] = purchaseInfo;
         }
       }
@@ -56,7 +56,7 @@ class EasyPaymentPurchaseStateStorage {
   }
 
   /// Update purchase state
-  Future<void> updateState(IAPPurchaseInfo info) async {
+  Future<void> updateState(EasyPaymentPurchaseInfo info) async {
     _stateCache[info.productId] = info;
     await _saveStates();
     _stateController.add(info);
@@ -69,24 +69,24 @@ class EasyPaymentPurchaseStateStorage {
   }
 
   /// Get purchase state
-  IAPPurchaseInfo? getState(String productId) {
+  EasyPaymentPurchaseInfo? getState(String productId) {
     return _stateCache[productId];
   }
 
   /// Get all purchase states
-  List<IAPPurchaseInfo> getAllStates() {
+  List<EasyPaymentPurchaseInfo> getAllStates() {
     return _stateCache.values.toList();
   }
 
   /// Get pending purchases
-  List<IAPPurchaseInfo> getPendingStates() {
+  List<EasyPaymentPurchaseInfo> getPendingStates() {
     return _stateCache.values
         .where((info) => !info.isTerminalState)
         .toList();
   }
 
   /// Get completed purchases
-  List<IAPPurchaseInfo> getCompletedStates() {
+  List<EasyPaymentPurchaseInfo> getCompletedStates() {
     return _stateCache.values
         .where((info) => info.status == IAPPurchaseStatus.completed)
         .toList();
